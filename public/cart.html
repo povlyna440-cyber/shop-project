@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Your Cart</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+:root {
+  --brand: #d4af37;
+  --brand-2: #f7d774;
+  --gold-dark: #8a6b16;
+  --dark: #08070b;
+  --text: #15110a;
+  --muted: #7b8794;
+  --line: #eadfbd;
+  --bg: #f8f5ec;
+  --white: #fffdf7;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(212, 175, 55, .18), transparent 260px),
+    radial-gradient(circle at top right, rgba(247, 215, 116, .16), transparent 260px),
+    linear-gradient(180deg, #fffaf0 0%, #f8f5ec 55%, #fffdf7 100%);
+  padding-bottom: 106px;
+  animation: slideIn .3s ease;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.slide-out {
+  animation: slideOut .25s ease forwards;
+}
+
+@keyframes slideOut {
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  width: min(100%, 1220px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  color: #fff7d6;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(247, 215, 116, .2), transparent 90px),
+    linear-gradient(135deg, #08070b, #2a210f 62%, #8a6b16);
+  border-bottom: 1px solid rgba(247, 215, 116, .28);
+  box-shadow: 0 8px 18px rgba(8, 7, 11, .18);
+}
+
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(247, 215, 116, .38);
+  border-radius: 14px;
+  color: #fff7d6;
+  background: rgba(255,255,255,.1);
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.header h2 {
+  flex: 1;
+  margin-right: 40px;
+  text-align: center;
+  color: #fff7d6;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.container {
+  width: min(100%, 1220px);
+  margin: 0 auto;
+  padding: 18px 18px 20px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid rgba(212, 175, 55, .32);
+  border-radius: 16px;
+  background: rgba(255,253,247,.96);
+  box-shadow: 0 8px 22px rgba(17, 24, 39, .07);
+}
+
+.item img {
+  flex: 0 0 82px;
+  width: 82px;
+  height: 82px;
+  object-fit: cover;
+  border-radius: 14px;
+  background: #f4f0e2;
+  border: 1px solid rgba(212, 175, 55, .24);
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.info h4 {
+  margin-bottom: 7px;
+  color: #15110a;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.price {
+  color: #d99a24;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.remove {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 14px;
+  color: #08070b;
+  background: linear-gradient(135deg, #f7d774, #d4af37);
+  cursor: pointer;
+  font-weight: 900;
+  box-shadow: 0 6px 14px rgba(212, 175, 55, .25);
+}
+
+.empty {
+  max-width: 340px;
+  margin: 54px auto 0;
+  padding: 34px 16px;
+  border: 1px solid rgba(212, 175, 55, .32);
+  border-radius: 18px;
+  color: var(--muted);
+  background: rgba(255,253,247,.96);
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, .06);
+}
+
+.empty-icon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 10px;
+  border-radius: 18px;
+  color: #08070b;
+  background: linear-gradient(135deg, #f7d774, #d4af37);
+  font-size: 28px;
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  z-index: 30;
+  width: min(100%, 1220px);
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+  background: rgba(255,253,247,.97);
+  box-shadow: 0 -8px 24px rgba(15,23,42,.1);
+  border-top: 1px solid rgba(212, 175, 55, .28);
+}
+
+.total-wrap {
+  min-width: 110px;
+}
+
+.total-label {
+  margin-bottom: 3px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.total {
+  color: #08070b;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.checkout,
+.chat {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 14px;
+  color: #08070b;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.checkout {
+  background: linear-gradient(135deg, #f7d774, #d4af37);
+  box-shadow: 0 8px 20px rgba(212,175,55,.28);
+}
+
+.chat {
+  color: #fff7d6;
+  background: linear-gradient(135deg, #08070b, #2a210f 70%, #8a6b16);
+  box-shadow: 0 8px 20px rgba(8,7,11,.18);
+}
+
+.checkout:active,
+.chat:active,
+.back-btn:active,
+.remove:active {
+  transform: scale(.96);
+}
+
+@media (max-width: 600px) {
+  .header {
+    padding: 13px 10px;
+  }
+
+  .header h2 {
+    font-size: 18px;
+  }
+
+  .container {
+    padding: 14px 10px 20px;
+  }
+
+  .item {
+    border-radius: 14px;
+    gap: 10px;
+  }
+
+  .item img {
+    flex-basis: 76px;
+    width: 76px;
+    height: 76px;
+  }
+
+  .info h4 {
+    font-size: 13px;
+  }
+
+  .footer {
+    padding: 12px 10px;
+    gap: 8px;
+  }
+
+  .total-wrap {
+    min-width: 84px;
+  }
+
+  .total {
+    font-size: 18px;
+  }
+
+  .footer-actions {
+    gap: 8px;
+  }
+
+  .checkout,
+  .chat {
+    min-height: 48px;
+    padding: 0 13px;
+    font-size: 14px;
+    border-radius: 13px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <button class="back-btn" onclick="goBack()">←</button>
+  <h2 id="title">Your Cart</h2>
+</div>
+
+<!-- ITEMS -->
+<div class="container" id="list"></div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="total-wrap">
+    <div class="total-label" id="totalText">Total</div>
+    <div class="total">$<span id="total">0.00</span></div>
+  </div>
+
+  <div class="footer-actions">
+    <button id="checkoutBtn" class="checkout" onclick="goCheckout()">Checkout</button>
+    <button id="chatBtn" class="chat" onclick="contactSeller()">Chat Seller</button>
+  </div>
+</div>
+
+<script>
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+const langData = {
+  en:{
+    title:"Your Cart",
+    checkout:"Checkout",
+    chat:"Chat Seller",
+    total:"Total",
+    empty:"Cart is empty",
+    emptyAlert:"Cart is empty",
+    option:"Option",
+    note:"Note",
+    qty:"Qty"
+  },
+  kh:{
+    title:"កន្ត្រករបស់អ្នក",
+    checkout:"បញ្ជាទិញ",
+    chat:"ទាក់ទងអ្នកលក់",
+    total:"សរុប",
+    empty:"មិនទាន់មានទំនិញក្នុងកន្ត្រក",
+    emptyAlert:"មិនទាន់មានទំនិញក្នុងកន្ត្រក",
+    option:"ជម្រើស",
+    note:"ចំណាំ",
+    qty:"ចំនួន"
+  }
+};
+
+function currentLang(){
+  return localStorage.getItem("lang") || "en";
+}
+
+function t(){
+  return langData[currentLang()] || langData.en;
+}
+
+function money(value){
+  return Number(value || 0).toFixed(2);
+}
+
+function escapeText(value){
+  return String(value || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function getName(p){
+  const lang = currentLang();
+  if(lang === "kh"){
+    return p.name_kh || p.name_en || p.name || "No name";
+  }
+  return p.name_en || p.name || p.name_kh || "No name";
+}
+
+function imageUrl(path){
+  if(!path) return "";
+  if(path.startsWith("http")) return path;
+  return window.location.origin + path;
+}
+
+function getQty(p){
+  return Math.max(1, Number(p.qty || p.quantity || 1));
+}
+function getDeliveryFee(p){
+  if(p.deliveryType === "free") return 0;
+  return Number(p.deliveryFee || 0);
+}
+
+function getItemTotal(p){
+  return Number(p.price || 0) * getQty(p) + getDeliveryFee(p);
+}
+
+function getOption(p){
+  return p.selectedOption || p.option || p.color || "";
+}
+
+function goBack(){
+  document.body.classList.add("slide-out");
+
+  setTimeout(()=>{
+    if(document.referrer){
+      history.back();
+    }else{
+      location.href = "index.html";
+    }
+  },250);
+}
+
+function render(){
+  let html = "";
+  let total = 0;
+  const text = t();
+
+  if(cart.length === 0){
+    document.getElementById("list").innerHTML =
+      `<div class="empty"><span class="empty-icon">🛒</span>${text.empty}</div>`;
+    document.getElementById("total").innerText = "0.00";
+    return;
+  }
+
+  cart.forEach((p,i)=>{
+    const price = Number(p.price || 0);
+    const qty = getQty(p);
+    const delivery = getDeliveryFee(p);
+    const subtotal = price * qty;
+    const itemTotal = subtotal + delivery;
+    const img = imageUrl(p.images?.[0]);
+    const name = getName(p);
+    const option = getOption(p);
+    const note = p.note || "";
+
+    total += itemTotal;
+
+    html += `
+      <div class="item">
+        <img src="${img}" alt="${escapeText(name)}">
+        <div class="info">
+          <h4 title="${escapeText(name)}">${escapeText(name)}</h4>
+
+          <div style="color:#64748b;font-size:12px;line-height:1.55;margin-bottom:6px">
+            <div>${text.qty}: <strong style="color:#0f172a">${qty}</strong></div>
+            ${option ? `<div>${text.option}: <strong style="color:#0f172a">${escapeText(option)}</strong></div>` : ""}
+            ${delivery > 0 ? `<div>Delivery: <strong style="color:#0f172a">$${money(delivery)}</strong></div>` : ""}
+            ${note ? `<div>${text.note}: <strong style="color:#0f172a">${escapeText(note)}</strong></div>` : ""}
+          </div>
+
+          <div class="price">$${money(price)} × ${qty} + $${money(delivery)} = $${money(itemTotal)}</div>
+        </div>
+        <button class="remove" onclick="removeItem(${i})">×</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("list").innerHTML = html;
+  document.getElementById("total").innerText = money(total);
+}
+
+function removeItem(i){
+  const qty = Number(cart[i].qty || cart[i].quantity || 1);
+
+  if (qty > 1) {
+    cart[i].qty = qty - 1;
+  } else {
+    cart.splice(i, 1);
+  }
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+  render();
+}
+
+function goCheckout(){
+  if(cart.length === 0){
+    alert(t().emptyAlert);
+    return;
+  }
+
+  const btn = document.querySelector(".checkout");
+  btn.style.transform = "scale(.95)";
+
+  setTimeout(()=>{
+    btn.style.transform = "scale(1)";
+    location.href = "checkout.html";
+  },150);
+}
+
+function contactSeller(){
+  const freshCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  if(freshCart.length === 0){
+    alert(t().emptyAlert);
+    return;
+  }
+
+  let msg = "Order:\n\n";
+
+  freshCart.forEach((p,i)=>{
+    const delivery = getDeliveryFee(p);
+    const itemTotal = price * qty + delivery;
+    const qty = getQty(p);
+    const price = Number(p.price || 0);
+    const option = getOption(p);
+    const note = p.note || "";
+
+    msg += `${i + 1}. ${getName(p)}\n`;
+    msg += `Qty: ${qty}\n`;
+    if(option) msg += `Option: ${option}\n`;
+    if(note) msg += `Note: ${note}\n`;
+    msg += `Price: $${money(price)} x ${qty}\n`;
+    msg += `Delivery: $${money(delivery)}\n`;
+    msg += `Item Total: $${money(itemTotal)}\n\n`;
+
+  });
+
+  const total = freshCart.reduce((sum,p)=>{
+    return sum + getItemTotal(p);
+  },0);
+
+  msg += `Total: $${money(total)}`;
+
+  const username = "N21twentyone";
+  const url = `https://t.me/share/url?url=https://t.me/${username}&text=${encodeURIComponent(msg)}`;
+
+  window.open(url, "_blank");
+}
+
+function applyLang(){
+  const text = t();
+
+  document.getElementById("title").innerText = text.title;
+  document.getElementById("checkoutBtn").innerText = text.checkout;
+  document.getElementById("chatBtn").innerText = text.chat;
+  document.getElementById("totalText").innerText = text.total;
+}
+
+window.onload = () => {
+  applyLang();
+  render();
+};
+</script>
+
+
+</body>
+</html>
