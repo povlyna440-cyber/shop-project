@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N21 Dashboard</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+:root{
+  --brand:#ff3047;
+  --brand-2:#ff7a8c;
+  --dark:#111827;
+  --text:#0f172a;
+  --muted:#64748b;
+  --line:#e3e8ef;
+  --bg:#f4f6f8;
+  --green:#10b981;
+  --orange:#f97316;
+  --danger:#ef233c;
+}
+body{
+  min-height:100vh;
+  color:var(--text);
+  background:var(--bg);
+  padding:18px;
+}
+button,input,select,textarea{
+  font:inherit;
+}
+button{
+  cursor:pointer;
+}
+.shell{
+  width:min(100%,1240px);
+  margin:0 auto;
+}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  margin-bottom:18px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.logo{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+  font-weight:900;
+  box-shadow:0 10px 24px rgba(255,48,71,.22);
+}
+.topbar h1{
+  font-size:24px;
+  line-height:1.1;
+}
+.topbar p{
+  color:var(--muted);
+  margin-top:4px;
+  font-size:13px;
+}
+.top-actions{
+  display:flex;
+  gap:10px;
+}
+.link-btn,.primary-btn,.ghost-btn,.danger-btn{
+  border:0;
+  border-radius:10px;
+  min-height:38px;
+  padding:0 14px;
+  font-weight:800;
+}
+.link-btn{
+  color:var(--dark);
+  background:#fff;
+  border:1px solid var(--line);
+}
+.primary-btn{
+  color:#fff;
+  background:linear-gradient(135deg,var(--brand),var(--brand-2));
+}
+.ghost-btn{
+  color:var(--dark);
+  background:#fff;
+  border:1px solid var(--line);
+}
+.danger-btn{
+  color:#fff;
+  background:var(--danger);
+}
+.layout{
+  display:grid;
+  grid-template-columns:380px 1fr;
+  gap:18px;
+  align-items:start;
+}
+.panel{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  box-shadow:0 8px 24px rgba(15,23,42,.06);
+}
+.form-panel{
+  position:sticky;
+  top:18px;
+  padding:18px;
+}
+.panel-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:14px;
+}
+.panel-title h2{
+  font-size:20px;
+}
+.edit-pill{
+  display:none;
+  padding:6px 10px;
+  border-radius:999px;
+  color:#fff;
+  background:var(--orange);
+  font-size:12px;
+  font-weight:900;
+}
+.editing .edit-pill{
+  display:inline-flex;
+}
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.field{
+  margin-top:10px;
+}
+.field label{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  margin-bottom:5px;
+}
+input,select,textarea{
+  width:100%;
+  border:1px solid #d8dee8;
+  border-radius:10px;
+  outline:none;
+  color:var(--text);
+  background:#fff;
+}
+input,select{
+  height:40px;
+  padding:0 11px;
+}
+textarea{
+  min-height:84px;
+  padding:11px;
+  resize:vertical;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--brand);
+  box-shadow:0 0 0 3px rgba(255,48,71,.1);
+}
+.check-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:12px;
+  color:var(--muted);
+  font-size:13px;
+  font-weight:800;
+}
+.check-row input{
+  width:18px;
+  height:18px;
+}
+.preview{
+  display:none;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+.preview img{
+  width:100%;
+  aspect-ratio:1/1;
+  object-fit:cover;
+  border-radius:9px;
+  border:1px solid var(--line);
+}
+.form-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:14px;
+}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:14px;
+}
+.stat{
+  padding:14px;
+  border-radius:14px;
+  background:#fff;
+  border:1px solid var(--line);
+  box-shadow:0 6px 18px rgba(15,23,42,.04);
+}
+.stat span{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+}
+.stat strong{
+  display:block;
+  margin-top:5px;
+  font-size:24px;
+}
+.toolbar{
+  padding:14px;
+  margin-bottom:14px;
+}
+.toolbar-grid{
+  display:grid;
+  grid-template-columns:1.2fr .8fr .8fr auto;
+  gap:10px;
+}
+.list-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:4px 0 12px;
+}
+.list-head h2{
+  font-size:20px;
+}
+.products{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:14px;
+}
+.card{
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:15px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(15,23,42,.06);
+}
+.image-wrap{
+  position:relative;
+  height:168px;
+  background:#edf1f5;
+}
+.image-wrap img,.no-image{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.no-image{
+  display:grid;
+  place-items:center;
+  color:var(--muted);
+  font-weight:900;
+}
+.badge-row{
+  position:absolute;
+  top:8px;
+  left:8px;
+  right:8px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:0 8px;
+  border-radius:999px;
+  color:#fff;
+  font-size:11px;
+  font-weight:900;
+}
+.badge.stock{background:var(--green)}
+.badge.out{background:var(--danger)}
+.badge.discount{background:var(--orange)}
+.badge.draft{background:#64748b}
+.card-body{
+  padding:12px;
+}
+.card-title{
+  font-size:16px;
+  line-height:1.3;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.meta{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:10px;
+  color:var(--muted);
+  font-size:13px;
+}
+.meta strong{
+  color:var(--text);
+}
+.price-line{
+  margin-top:10px;
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+}
+.price{
+  color:var(--brand);
+  font-size:18px;
+  font-weight:900;
+}
+.old-price{
+  color:var(--muted);
+  font-size:13px;
+}
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:10px;
+}
+.chip{
+  padding:5px 8px;
+  border-radius:999px;
+  color:#334155;
+  background:#f1f5f9;
+  font-size:12px;
+  font-weight:800;
+}
+.card-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:12px;
+}
+.empty,.error{
+  grid-column:1/-1;
+  padding:28px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  color:var(--muted);
+  background:#fff;
+  text-align:center;
+}
+.error{color:var(--danger)}
+@media (max-width:920px){
+  .layout{grid-template-columns:1fr}
+  .form-panel{position:static}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .toolbar-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:560px){
+  body{padding:12px}
+  .topbar{align-items:flex-start;flex-direction:column}
+  .top-actions{width:100%}
+  .top-actions button{flex:1}
+  .grid-2,.form-actions,.toolbar-grid{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr}
+  .products{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">N21</div>
+      <div>
+        <h1>Dashboard</h1>
+        <p>Manage products, stock, discount, colors and status.</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="link-btn" type="button" onclick="location.href='index.html'">View Shop</button>
+      <button class="link-btn" type="button" onclick="loadProducts()">Reload</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <section id="formPanel" class="panel form-panel">
+      <div class="panel-title">
+        <h2 id="formTitle">Add Product</h2>
+        <span class="edit-pill">Editing</span>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="name">Product Name</label>
+          <input id="name" placeholder="Name">
+        </div>
+        <div class="field">
+          <label for="code">Code / SKU</label>
+          <input id="code" placeholder="Example: 71938107">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="name_en">English Name</label>
+          <input id="name_en" placeholder="English name">
+        </div>
+        <div class="field">
+          <label for="name_kh">Khmer Name</label>
+          <input id="name_kh" placeholder="ឈ្មោះខ្មែរ">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="price">Sale Price</label>
+          <input id="price" type="number" min="0" step="0.01" placeholder="12.00">
+        </div>
+        <div class="field">
+          <label for="oldPrice">Old Price</label>
+          <input id="oldPrice" type="number" min="0" step="0.01" placeholder="15.00">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="discountPercent">Discount %</label>
+          <input id="discountPercent" type="number" min="0" max="95" step="1" placeholder="20">
+        </div>
+        <div class="field">
+          <label for="stock">Stock</label>
+          <input id="stock" type="number" min="0" step="1" placeholder="10">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="category">Category</label>
+          <input id="category" placeholder="Watch / Fashion">
+        </div>
+        <div class="field">
+          <label for="status">Status</label>
+          <select id="status">
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="hidden">Hidden</option>
+          </select>
+        </div>
+      </div>
+    <div class="grid-2">
+  <div class="field">
+    <label for="deliveryFee">Delivery Fee</label>
+    <input id="deliveryFee" type="number" min="0" step="0.01" placeholder="1.50">
+  </div>
+  <div class="field">
+    <label for="deliveryType">Delivery</label>
+    <select id="deliveryType">
+      <option value="paid">Paid Delivery</option>
+      <option value="free">Free Delivery</option>
+    </select>
+  </div>
+</div>
+
+      <div class="field">
+        <label for="colors">Colors Available</label>
+        <input id="colors" placeholder="ខ្មៅ, ស, Pink, Blue">
+      </div>
+
+      <div class="field">
+        <label for="options">Options / Sizes</label>
+        <input id="options" placeholder="S, M, L, XL">
+      </div>
+
+      <div class="field">
+        <label for="description">Description</label>
+        <textarea id="description" placeholder="Product detail, material, size, note..."></textarea>
+      </div>
+
+      <label class="check-row">
+        <input id="isPreOrder" type="checkbox" checked>
+        Pre-order product
+      </label>
+
+      <div class="field">
+        <label for="images">Images</label>
+        <input id="images" type="file" accept="image/*" multiple>
+        <div id="preview" class="preview"></div>
+      </div>
+
+      <div class="form-actions">
+        <button id="saveBtn" class="primary-btn" type="button" onclick="saveProduct()">Save</button>
+        <button class="ghost-btn" type="button" onclick="clearForm()">Clear</button>
+      </div>
+    </section>
+
+    <main>
+      <section class="stats">
+        <div class="stat"><span>Total Products</span><strong id="statTotal">0</strong></div>
+        <div class="stat"><span>Out of Stock</span><strong id="statOut">0</strong></div>
+        <div class="stat"><span>On Discount</span><strong id="statDiscount">0</strong></div>
+        <div class="stat"><span>Total Stock</span><strong id="statStock">0</strong></div>
+      </section>
+
+      <section class="panel toolbar">
+        <div class="toolbar-grid">
+          <input id="search" placeholder="Search product..." oninput="renderProducts()">
+          <select id="stockFilter" onchange="renderProducts()">
+            <option value="all">All stock</option>
+            <option value="in">In stock</option>
+            <option value="out">Out of stock</option>
+          </select>
+          <select id="discountFilter" onchange="renderProducts()">
+            <option value="all">All discount</option>
+            <option value="discount">Discount only</option>
+            <option value="normal">No discount</option>
+          </select>
+          <select id="statusFilter" onchange="renderProducts()">
+            <option value="all">All status</option>
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="hidden">Hidden</option>
+          </select>
+        </div>
+      </section>
+
+      <div class="list-head">
+        <h2>All Products</h2>
+        <span id="resultCount" class="muted">0 items</span>
+      </div>
+
+      <section id="products" class="products"></section>
+    </main>
+  </div>
+</div>
+
+<script>
+let productsData = [];
+let editingId = null;
+
+const fields = [
+  "name","name_en","name_kh","code","price","oldPrice","discountPercent",
+  "stock","category","status","deliveryFee","deliveryType","colors","options","description","isPreOrder"
+];
+
+
+function el(id){
+  return document.getElementById(id);
+}
+
+function money(value){
+  return Number(value || 0).toFixed(2);
+}
+
+function listText(value){
+  if(Array.isArray(value)) return value.join(", ");
+  return value || "";
+}
+
+function parseList(value){
+  if(Array.isArray(value)) return value;
+  return String(value || "")
+    .split(",")
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function escapeText(value){
+  return String(value || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function getName(product){
+  return product.name_kh || product.name_en || product.name || "No name";
+}
+
+function getImage(product){
+  if(product.images && product.images.length){
+    const img = product.images[0];
+    return img.startsWith("http") ? img : window.location.origin + img;
+  }
+  return "";
+}
+
+function hasDiscount(product){
+  return Number(product.discountPercent || 0) > 0 ||
+    (Number(product.oldPrice || 0) > Number(product.price || 0));
+}
+
+function discountLabel(product){
+  const discount = Number(product.discountPercent || 0);
+  if(discount > 0) return `-${discount}%`;
+
+  const oldPrice = Number(product.oldPrice || 0);
+  const price = Number(product.price || 0);
+  if(oldPrice > price){
+    return `-${Math.round(((oldPrice - price) / oldPrice) * 100)}%`;
+  }
+
+  return "";
+}
+
+function clearForm(){
+  editingId = null;
+  fields.forEach(id => {
+    const input = el(id);
+    if(!input) return;
+    if(input.type === "checkbox") input.checked = id === "isPreOrder";
+    else input.value = "";
+  });
+
+  el("status").value = "active";
+  el("images").value = "";
+  el("preview").innerHTML = "";
+  el("preview").style.display = "none";
+  el("formTitle").innerText = "Add Product";
+  el("saveBtn").innerText = "Save";
+  el("formPanel").classList.remove("editing");
+}
+
+function fillForm(product){
+  editingId = product._id;
+  el("name").value = product.name || "";
+  el("name_en").value = product.name_en || "";
+  el("name_kh").value = product.name_kh || "";
+  el("code").value = product.code || "";
+  el("price").value = product.price || "";
+  el("oldPrice").value = product.oldPrice || "";
+  el("discountPercent").value = product.discountPercent || "";
+  el("stock").value = product.stock || 0;
+  el("category").value = product.category || "";
+  el("status").value = product.status || "active";
+  el("colors").value = listText(product.colors);
+  el("options").value = listText(product.options);
+  el("description").value = product.description || "";
+  el("isPreOrder").checked = product.isPreOrder !== false;
+  el("images").value = "";
+  el("preview").innerHTML = "";
+  el("preview").style.display = "none";
+  el("formTitle").innerText = "Edit Product";
+  el("saveBtn").innerText = "Update";
+  el("formPanel").classList.add("editing");
+  window.scrollTo({top:0, behavior:"smooth"});
+  el("deliveryFee").value = product.deliveryFee || "";
+  el("deliveryType").value = product.deliveryType || "paid";
+
+}
+
+el("images").addEventListener("change", () => {
+  const files = [...el("images").files];
+  const preview = el("preview");
+  preview.innerHTML = "";
+
+  if(!files.length){
+    preview.style.display = "none";
+    return;
+  }
+
+  preview.style.display = "grid";
+  files.slice(0,4).forEach(file => {
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+    preview.appendChild(img);
+  });
+});
+
+async function saveProduct(){
+  const name = el("name").value.trim() || el("name_en").value.trim() || el("name_kh").value.trim();
+  const price = el("price").value;
+
+  if(!name){
+    alert("Enter product name");
+    return;
+  }
+
+  if(!price){
+    alert("Enter product price");
+    return;
+  }
+
+  const form = new FormData();
+  form.append("name", name);
+  form.append("name_en", el("name_en").value.trim());
+  form.append("name_kh", el("name_kh").value.trim());
+  form.append("code", el("code").value.trim());
+  form.append("price", price);
+  form.append("oldPrice", el("oldPrice").value);
+  form.append("discountPercent", el("discountPercent").value);
+  form.append("stock", el("stock").value || 0);
+  form.append("category", el("category").value.trim());
+  form.append("status", el("status").value);
+  form.append("deliveryFee", el("deliveryFee").value || 0);
+  form.append("deliveryType", el("deliveryType").value);
+  form.append("colors", el("colors").value.trim());
+  form.append("options", el("options").value.trim());
+  form.append("description", el("description").value.trim());
+  form.append("isPreOrder", el("isPreOrder").checked ? "true" : "false");
+
+  [...el("images").files].forEach(file => form.append("images", file));
+
+  const saveBtn = el("saveBtn");
+  saveBtn.disabled = true;
+  saveBtn.innerText = editingId ? "Updating..." : "Saving...";
+
+  try{
+    const url = editingId ? "/api/products/" + editingId : "/api/products";
+    const method = editingId ? "PUT" : "POST";
+    const res = await fetch(url, {method, body:form});
+
+    if(!res.ok) throw new Error("Save failed");
+
+    alert(editingId ? "Updated" : "Saved");
+    clearForm();
+    await loadProducts();
+  }catch(err){
+    alert("Save failed");
+  }finally{
+    saveBtn.disabled = false;
+    saveBtn.innerText = editingId ? "Update" : "Save";
+  }
+}
+
+async function loadProducts(){
+  el("products").innerHTML = "<div class='empty'>Loading...</div>";
+
+  try{
+    const res = await fetch("/api/products");
+    if(!res.ok) throw new Error("Load failed");
+    productsData = await res.json();
+    updateStats();
+    renderProducts();
+  }catch(err){
+    el("products").innerHTML = "<div class='error'>Cannot load products</div>";
+  }
+}
+
+function updateStats(){
+  const total = productsData.length;
+  const out = productsData.filter(product => Number(product.stock || 0) <= 0).length;
+  const discount = productsData.filter(hasDiscount).length;
+  const stock = productsData.reduce((sum, product) => sum + Number(product.stock || 0), 0);
+
+  el("statTotal").innerText = total;
+  el("statOut").innerText = out;
+  el("statDiscount").innerText = discount;
+  el("statStock").innerText = stock;
+}
+
+function filteredProducts(){
+  const search = el("search").value.trim().toLowerCase();
+  const stockFilter = el("stockFilter").value;
+  const discountFilter = el("discountFilter").value;
+  const statusFilter = el("statusFilter").value;
+
+  return productsData.filter(product => {
+    const name = getName(product).toLowerCase();
+    const category = String(product.category || "").toLowerCase();
+    const code = String(product.code || "").toLowerCase();
+    const colors = parseList(product.colors).join(" ").toLowerCase();
+    const stock = Number(product.stock || 0);
+    const discounted = hasDiscount(product);
+    const status = product.status || "active";
+
+    if(search && !`${name} ${category} ${code} ${colors}`.includes(search)) return false;
+    if(stockFilter === "in" && stock <= 0) return false;
+    if(stockFilter === "out" && stock > 0) return false;
+    if(discountFilter === "discount" && !discounted) return false;
+    if(discountFilter === "normal" && discounted) return false;
+    if(statusFilter !== "all" && status !== statusFilter) return false;
+
+    return true;
+  });
+}
+
+function renderProducts(){
+  const list = filteredProducts();
+  el("resultCount").innerText = `${list.length} items`;
+
+  if(!productsData.length){
+    el("products").innerHTML = "<div class='empty'>No products yet</div>";
+    return;
+  }
+
+  if(!list.length){
+    el("products").innerHTML = "<div class='empty'>No products match this filter</div>";
+    return;
+  }
+
+  el("products").innerHTML = list.map(product => {
+    const img = getImage(product);
+    const name = getName(product);
+    const stock = Number(product.stock || 0);
+    const colors = parseList(product.colors);
+    const options = parseList(product.options);
+    const discounted = hasDiscount(product);
+    const status = product.status || "active";
+
+    return `
+      <article class="card">
+        <div class="image-wrap">
+          ${img ? `<img src="${img}" alt="${escapeText(name)}">` : `<div class="no-image">No image</div>`}
+          <div class="badge-row">
+            <span class="badge ${stock <= 0 ? "out" : "stock"}">${stock <= 0 ? "Out of stock" : "Stock: " + stock}</span>
+            ${discounted ? `<span class="badge discount">${discountLabel(product)}</span>` : ""}
+            ${status !== "active" ? `<span class="badge draft">${escapeText(status)}</span>` : ""}
+          </div>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title" title="${escapeText(name)}">${escapeText(name)}</h3>
+          <div class="price-line">
+            <span class="price">$${money(product.price)}</span>
+            ${Number(product.oldPrice || 0) > Number(product.price || 0) ? `<del class="old-price">$${money(product.oldPrice)}</del>` : ""}
+          </div>
+          <div class="meta">
+            <p>Code<br><strong>${escapeText(product.code || "-")}</strong></p>
+            <p>Category<br><strong>${escapeText(product.category || "-")}</strong></p>
+            <p>Status<br><strong>${escapeText(status)}</strong></p>
+            <p>Pre-order<br><strong>${product.isPreOrder === false ? "No" : "Yes"}</strong></p>
+          </div>
+          <div class="chips">
+            ${colors.map(color => `<span class="chip">${escapeText(color)}</span>`).join("")}
+            ${options.map(option => `<span class="chip">${escapeText(option)}</span>`).join("")}
+            ${!colors.length && !options.length ? `<span class="chip">No color/option</span>` : ""}
+          </div>
+          <div class="card-actions">
+            <button class="ghost-btn" type="button" onclick="editProduct('${product._id}')">Edit</button>
+            <button class="danger-btn" type="button" onclick="deleteProduct('${product._id}')">Delete</button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+function editProduct(id){
+  const product = productsData.find(item => item._id === id);
+  if(product) fillForm(product);
+}
+
+async function deleteProduct(id){
+  if(!confirm("Delete this product?")) return;
+
+  try{
+    const res = await fetch("/api/products/" + id, {method:"DELETE"});
+    if(!res.ok) throw new Error("Delete failed");
+    if(editingId === id) clearForm();
+    await loadProducts();
+  }catch(err){
+    alert("Delete failed");
+  }
+}
+
+loadProducts();
+</script>
+</body>
+</html>
