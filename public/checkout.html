@@ -236,6 +236,131 @@ input:focus {
   font-size: 12px;
   line-height: 1.4;
 }
+.delivery-section {
+  margin-top: 14px;
+}
+
+.delivery-title {
+  margin-bottom: 8px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.location-card {
+  width: 100%;
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 12px;
+  border: 1px solid #fecaca;
+  border-radius: 16px;
+  color: #111827;
+  background: #fff1f2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.location-icon {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  color: #fff;
+  background: #ff3b5f;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.location-card strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.location-card small {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.map-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  padding: 22px;
+  background: rgba(15, 23, 42, .76);
+}
+
+.map-modal.active {
+  display: grid;
+  place-items: center;
+}
+
+.map-box {
+  width: min(100%, 520px);
+  overflow: hidden;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(0,0,0,.28);
+}
+
+.map-head {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.map-head h3 {
+  font-size: 20px;
+  color: #111827;
+}
+
+.map-head button {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 28px;
+}
+
+.map-frame {
+  display: block;
+  width: calc(100% - 32px);
+  height: 440px;
+  margin: 14px auto 0;
+  border: 0;
+  border-radius: 14px;
+}
+
+.map-note {
+  padding: 14px 18px;
+  color: #6b7280;
+  text-align: center;
+  font-size: 13px;
+}
+
+.map-confirm {
+  width: calc(100% - 32px);
+  min-height: 54px;
+  margin: 0 16px 18px;
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, #ff3b5f, #8b35e8);
+  font-size: 16px;
+  font-weight: 900;
+}
 
 </style>
 </head>
@@ -260,13 +385,21 @@ input:focus {
 
   <div class="field">
     <input id="address" autocomplete="street-address">
-    <small class="error"></small>
+    <small id="addressError" class="error"></small>
   </div>
 
-<button type="button" class="location-btn" onclick="getCurrentLocation()">
-  📍 Current Location
-</button>
-<small id="locationText" class="location-text"></small>
+<div class="delivery-section">
+  <p class="delivery-title">Location & Address</p>
+
+  <button type="button" class="location-card" onclick="getCurrentLocation()">
+    <span class="location-icon">⌖</span>
+    <span>
+      <strong>Use Current Location</strong>
+      <small id="locationText">Tap to fetch GPS coordinates</small>
+    </span>
+  </button>
+</div>
+
 
   <div class="total">
     <span id="totalText">Total</span>: $<span id="total">0.00</span>
@@ -288,6 +421,22 @@ input:focus {
 
   <button id="confirmBtn" class="confirm" onclick="confirmOrder()">Confirm Order</button>
 </div>
+<div id="mapModal" class="map-modal">
+  <div class="map-box">
+    <div class="map-head">
+      <h3>Confirm Your Location</h3>
+      <button type="button" onclick="closeMapModal()">×</button>
+    </div>
+
+    <iframe id="mapFrame" class="map-frame" loading="lazy"></iframe>
+
+    <p class="map-note">Please ensure this is your delivery location.</p>
+
+    <button type="button" class="map-confirm" onclick="confirmLocation()">
+      Confirm Location
+    </button>
+  </div>
+</div>
 
 <script>
 const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -306,6 +455,7 @@ const langData = {
     qr:"Scan to Pay (ABA)",
     nameError:"Enter name",
     phoneError:"Enter phone",
+    addressError:"Enter address or use current location",
     slipError:"Upload slip",
     fileError:"Only JPG / PNG allowed",
     success:"Order success",
@@ -324,6 +474,7 @@ const langData = {
     qr:"ស្កេនបង់ប្រាក់ (ABA)",
     nameError:"សូមបញ្ចូលឈ្មោះ",
     phoneError:"សូមបញ្ចូលលេខទូរស័ព្ទ",
+    addressError:"សូមបញ្ចូលអាសយដ្ឋាន ឬប្រើទីតាំងបច្ចុប្បន្ន",
     slipError:"សូមបញ្ចូលវិក្កយបត្រ",
     fileError:"អាចប្រើបានតែ JPG / PNG",
     success:"បញ្ជាទិញបានជោគជ័យ",
@@ -392,6 +543,7 @@ function goBack(){
   }
 }
 let currentLocationUrl = "";
+let pendingLocationUrl = "";
 
 function getCurrentLocation(){
   const locationText = document.getElementById("locationText");
@@ -408,8 +560,12 @@ function getCurrentLocation(){
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
 
-      currentLocationUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-      locationText.innerText = "Location added";
+      pendingLocationUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+      document.getElementById("mapFrame").src =
+        `https://maps.google.com/maps?q=${lat},${lng}&z=17&output=embed`;
+
+      document.getElementById("mapModal").classList.add("active");
+      document.body.style.overflow = "hidden";
     },
     ()=>{
       locationText.innerText = "Please allow location permission";
@@ -420,6 +576,17 @@ function getCurrentLocation(){
       maximumAge: 0
     }
   );
+}
+
+function closeMapModal(){
+  document.getElementById("mapModal").classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+function confirmLocation(){
+  currentLocationUrl = pendingLocationUrl;
+  document.getElementById("locationText").innerText = "Location added";
+  closeMapModal();
 }
 
 document.getElementById("slip").onchange = () => {
@@ -452,6 +619,7 @@ async function confirmOrder(){
 
   document.getElementById("nameError").innerText = "";
   document.getElementById("phoneError").innerText = "";
+  document.getElementById("addressError").innerText = "";
   document.getElementById("slipError").innerText = "";
 
   let valid = true;
@@ -463,6 +631,11 @@ async function confirmOrder(){
 
   if(!phoneInput.value.trim()){
     document.getElementById("phoneError").innerText = t.phoneError;
+    valid = false;
+  }
+
+  if(!addressInput.value.trim() && !currentLocationUrl){
+    document.getElementById("addressError").innerText = t.addressError;
     valid = false;
   }
 
@@ -506,6 +679,7 @@ async function confirmOrder(){
   }
 }
 
+
 function applyLang(){
   const t = text();
 
@@ -522,6 +696,7 @@ function applyLang(){
 
 applyLang();
 updateTotal();
+
 </script>
 
 </body>
