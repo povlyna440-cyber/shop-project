@@ -86,25 +86,6 @@ const upload = multer({
   fileFilter: imageFileFilter
 });
 
-
-const upload = multer({
-  storage,
-  fileFilter: (req, file, cb) => {
-    const allowed = [
-      "image/jpeg",
-      "image/png",
-      "image/jpg",
-      "image/webp",
-      "image/gif"
-    ];
-
-    if (allowed.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only images allowed: JPG, PNG, WEBP, GIF"), false);
-    }
-  }
-});
 // ===== HELPERS =====
 function parseList(value) {
   if (Array.isArray(value)) return value;
