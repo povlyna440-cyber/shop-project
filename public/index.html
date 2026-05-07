@@ -1437,11 +1437,37 @@ function viewerStep(step) {
   function inStock(product) {
   return Number(product.stock || 0) > 0;
   }
-  function imageUrl(path) {
-    if (!path) return "";
-    if (path.startsWith("http")) return path;
-    return API_ORIGIN + path;
+ function imageUrl(value) {
+  if (!value) return "";
+
+  if (typeof value === "object") {
+    value = value.secure_url || value.url || value.path || value.src || "";
   }
+
+  value = String(value).trim();
+  if (!value) return "";
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  if (value.startsWith("/")) {
+    return API_ORIGIN + value;
+  }
+
+  return API_ORIGIN + "/" + value;
+}
+
+function getProductImage(product, index = 0) {
+  const images = Array.isArray(product.images)
+    ? product.images
+    : product.images
+      ? [product.images]
+      : [];
+
+  return imageUrl(images[index]);
+}
+
 
   function escapeText(value) {
     return String(value || "")
@@ -1495,7 +1521,7 @@ const visibleList = list.filter((product) => {
 
   const html = visibleList.map((product) => {
     const name = getName(product);
-    const img = imageUrl(product.images?.[0]);
+    const img = getProductImage(product);
     const price = Number(product.price || 0);
     const oldPrice = getOldPrice(product);
     const discount = getDiscount(product);
@@ -1589,9 +1615,9 @@ return `
   selectedColor = "";
   selectedSize = "";
 
-  const modal = document.getElementById("modal");
-  const images = product.images || [];
-    const firstImage = imageUrl(images[0]);
+    const modal = document.getElementById("modal");
+    const images = Array.isArray(product.images) ? product.images : product.images ? [product.images] : [];
+    const firstImage = getProductImage(product);
     const price = Number(product.price || 0);
     const oldPrice = getOldPrice(product);
     const preorder = isPreOrder(product);
@@ -1744,7 +1770,7 @@ function selectSize(el) {
 
     relatedBox.innerHTML = related.map((product) => {
       const name = getName(product);
-      const img = imageUrl(product.images?.[0]);
+      const img = getProductImage(product);
 
       return `
         <button class="related-card" type="button" onclick="openModal('${product._id}')">
