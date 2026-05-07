@@ -4,6 +4,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const path = require("path");
 const axios = require("axios");
 const fs = require("fs");
@@ -33,14 +35,57 @@ mongoose
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log("MongoDB Error:", err));
 
-// ===== MULTER =====
-const storage = multer.diskStorage({
+// ===== CLOUDINARY =====
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const imageFileFilter = (req, file, cb) => {
+  const allowed = [
+    "image/jpeg",
+    "image/png",
+    "image/jpg",
+    "image/webp",
+    "image/gif"
+  ];
+
+  if (allowed.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only images allowed: JPG, PNG, WEBP, GIF"), false);
+  }
+};
+
+// Product images: save to Cloudinary
+const productStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "shop-products",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "gif"]
+  }
+});
+
+const productUpload = multer({
+  storage: productStorage,
+  fileFilter: imageFileFilter
+});
+
+// Payment slip: keep local for Telegram sendPhoto
+const localStorage = multer.diskStorage({
   destination: "uploads/",
   filename: (req, file, cb) => {
     const safeName = file.originalname.replace(/\s+/g, "-");
     cb(null, Date.now() + "-" + safeName);
   }
 });
+
+const upload = multer({
+  storage: localStorage,
+  fileFilter: imageFileFilter
+});
+
 
 const upload = multer({
   storage,
@@ -105,7 +150,7 @@ function productPayload(body, images) {
 }
 
 // ===== CREATE PRODUCT =====
-app.post("/api/products", upload.array("images", 5), async (req, res) => {
+app.post("/api/products", productUpload.array("images", 5), async (req, res) => {
   try {
     if (!req.body.name) {
       return res.status(400).json({ error: "Product name is required" });
@@ -119,7 +164,7 @@ app.post("/api/products", upload.array("images", 5), async (req, res) => {
       return res.status(400).json({ error: "No image uploaded" });
     }
 
-    const images = req.files.map((file) => "/uploads/" + file.filename);
+    const images = req.files.map((file) => file.path);
     const product = await Product.create(productPayload(req.body, images));
 
     res.json(product);
@@ -130,7 +175,7 @@ app.post("/api/products", upload.array("images", 5), async (req, res) => {
 });
 
 // ===== UPDATE PRODUCT =====
-app.put("/api/products/:id", upload.array("images", 5), async (req, res) => {
+app.put("/api/products/:id", productUpload.array("images", 5), async (req, res) => {
   try {
     const oldProduct = await Product.findById(req.params.id);
 
@@ -140,7 +185,7 @@ app.put("/api/products/:id", upload.array("images", 5), async (req, res) => {
 
     const images =
       req.files && req.files.length > 0
-        ? req.files.map((file) => "/uploads/" + file.filename)
+        ? req.files.map((file) => file.path)
         : oldProduct.images;
 
     const updated = await Product.findByIdAndUpdate(
