@@ -93,16 +93,18 @@ body {
   padding: 18px 18px 20px;
 }
 
-.item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-  padding: 10px;
-  border: 1px solid rgba(212, 175, 55, .32);
-  border-radius: 16px;
-  background: rgba(255,253,247,.96);
-  box-shadow: 0 8px 22px rgba(17, 24, 39, .07);
+.item{
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  margin-bottom:14px;
+  padding:14px;
+  border:1px solid rgba(212,175,55,.28);
+  border-radius:18px;
+  background:rgba(255,253,247,.96);
+  box-shadow:0 8px 22px rgba(17,24,39,.07);
+  transition:.25s;
+  position:relative;
 }
 
 .item img {
@@ -113,15 +115,21 @@ body {
   border-radius: 14px;
   background: #f4f0e2;
   border: 1px solid rgba(212, 175, 55, .24);
+  transition:.25s;
+}
+
+.item:hover img{
+  transform:scale(1.05);
 }
 
 .info {
   flex: 1;
   min-width: 0;
+  padding-right:0px;
 }
 
 .info h4 {
-  margin-bottom: 7px;
+  margin-bottom: 10px;
   color: #15110a;
   font-size: 14px;
   line-height: 1.35;
@@ -131,25 +139,53 @@ body {
   text-overflow: ellipsis;
 }
 
-.price {
-  color: #d99a24;
-  font-size: 16px;
-  font-weight: 900;
+.price{
+  margin-top:10px;
+  color:#d99a24;
+  font-size:17px;
+  font-weight:900;
+  line-height:1.45;
+}
+.qty-box{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:10px 0 8px;
 }
 
-.remove {
-  flex: 0 0 38px;
-  width: 38px;
-  height: 38px;
-  border: 0;
-  border-radius: 14px;
-  color: #08070b;
-  background: linear-gradient(135deg, #f7d774, #d4af37);
-  cursor: pointer;
-  font-weight: 900;
-  box-shadow: 0 6px 14px rgba(212, 175, 55, .25);
+.qty-control{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:#fff7db;
+  padding:4px 8px;
+  border-radius:30px;
+  border:1px solid rgba(212,175,55,.25);
 }
 
+.qty-control button{
+  width:26px;
+  height:26px;
+  border:0;
+  border-radius:50%;
+  background:linear-gradient(135deg,#f7d774,#d4af37);
+  font-weight:900;
+  cursor:pointer;
+}
+
+.qty-control strong{
+  min-width:18px;
+  text-align:center;
+}
+
+.item{
+  transition:.25s;
+}
+
+.item:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 28px rgba(17,24,39,.12);
+}
 .empty {
   max-width: 340px;
   margin: 54px auto 0;
@@ -203,10 +239,11 @@ body {
   font-size: 13px;
 }
 
-.total {
-  color: #08070b;
-  font-size: 22px;
-  font-weight: 900;
+.total{
+  color:#d99a24;
+  font-size:26px;
+  font-weight:900;
+  letter-spacing:.5px;
 }
 
 .footer-actions {
@@ -240,8 +277,7 @@ body {
 
 .checkout:active,
 .chat:active,
-.back-btn:active,
-.remove:active {
+.back-btn:active {
   transform: scale(.96);
 }
 
@@ -297,6 +333,14 @@ body {
     font-size: 14px;
     border-radius: 13px;
   }
+}
+.product-card{
+  transition:.25s;
+}
+
+.product-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 14px 28px rgba(0,0,0,.12);
 }
 </style>
 </head>
@@ -434,7 +478,7 @@ function render(){
     const delivery = getDeliveryFee(p);
     const subtotal = price * qty;
     const itemTotal = subtotal + delivery;
-    const img = imageUrl(p.images?.[0]);
+    const img = imageUrl(p.cartImage || p.selectedImage || p.images?.[0]);
     const name = getName(p);
     const option = getOption(p);
     const note = p.note || "";
@@ -448,7 +492,17 @@ function render(){
           <h4 title="${escapeText(name)}">${escapeText(name)}</h4>
 
           <div style="color:#64748b;font-size:12px;line-height:1.55;margin-bottom:6px">
-            <div>${text.qty}: <strong style="color:#0f172a">${qty}</strong></div>
+            <div class="qty-box">
+ <span style="font-size:13px;color:#64748b">
+  ${text.qty}
+</span>
+
+  <div class="qty-control">
+    <button onclick="changeQty(${i},-1)">−</button>
+    <strong>${qty}</strong>
+    <button onclick="changeQty(${i},1)">+</button>
+  </div>
+</div>
             ${option ? `<div>${text.option}: <strong style="color:#0f172a">${escapeText(option)}</strong></div>` : ""}
             ${delivery > 0 ? `<div>Delivery: <strong style="color:#0f172a">$${money(delivery)}</strong></div>` : ""}
             ${note ? `<div>${text.note}: <strong style="color:#0f172a">${escapeText(note)}</strong></div>` : ""}
@@ -456,7 +510,6 @@ function render(){
 
           <div class="price">$${money(price)} × ${qty} + $${money(delivery)} = $${money(itemTotal)}</div>
         </div>
-        <button class="remove" onclick="removeItem(${i})">×</button>
       </div>
     `;
   });
@@ -474,10 +527,25 @@ function removeItem(i){
     cart.splice(i, 1);
   }
 
+localStorage.setItem("cart", JSON.stringify(cart));
+window.dispatchEvent(new Event("cartUpdated"));
+
+render();
+}
+function changeQty(i,change){
+  const qty = Number(cart[i].qty || 1);
+
+  cart[i].qty = qty + change;
+
+  if(cart[i].qty <= 0){
+    cart.splice(i,1);
+  }
+
   localStorage.setItem("cart", JSON.stringify(cart));
+  window.dispatchEvent(new Event("cartUpdated"));
+
   render();
 }
-
 function goCheckout(){
   if(cart.length === 0){
     alert(t().emptyAlert);
@@ -503,13 +571,17 @@ function contactSeller(){
 
   let msg = "Order:\n\n";
 
-  freshCart.forEach((p,i)=>{
-    const delivery = getDeliveryFee(p);
-    const itemTotal = price * qty + delivery;
-    const qty = getQty(p);
-    const price = Number(p.price || 0);
-    const option = getOption(p);
-    const note = p.note || "";
+freshCart.forEach((p,i)=>{
+  const price = Number(p.price || 0);
+  const qty = getQty(p);
+  const delivery = getDeliveryFee(p);
+  const subtotal = price * qty;
+  const itemTotal = subtotal + delivery;
+  const img = imageUrl(p.cartImage || p.selectedImage || p.images?.[0]);
+  const name = getName(p);
+  const option = getOption(p);
+  const note = p.note || "";
+
 
     msg += `${i + 1}. ${getName(p)}\n`;
     msg += `Qty: ${qty}\n`;

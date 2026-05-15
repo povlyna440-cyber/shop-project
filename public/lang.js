@@ -8,7 +8,7 @@ const langData = {
     outStock: "Out of Stock",
     home: "Home",
     cart: "Cart",
-    setting: "Setting",
+    tracking: "Tracking",
     account: "Account"
   },
   kh: {
@@ -20,10 +20,11 @@ const langData = {
     outStock: "អស់ស្តុក",
     home: "ទំព័រដើម",
     cart: "កន្ត្រក",
-    setting: "ការកំណត់",
+    tracking: "តាមដានអីវ៉ាន់",
     account: "គណនី"
   }
 };
+
 
 function currentLang() {
   return localStorage.getItem("lang") || "en";
@@ -35,18 +36,10 @@ function text() {
 
 function setLang(lang) {
   localStorage.setItem("lang", lang);
-
-  if (typeof renderCategories === "function") {
-    renderCategories();
-  }
-
-  if (typeof renderProducts === "function" && Array.isArray(window.productsData)) {
-    renderProducts(window.productsData);
-  } else if (typeof renderProducts === "function" && typeof productsData !== "undefined") {
-    renderProducts(productsData);
-  }
-
   applyLang();
+
+  if (typeof renderCategories === "function") renderCategories();
+  if (typeof renderProducts === "function") renderProducts(productsData);
 }
 
 function applyLang() {
@@ -62,16 +55,18 @@ function applyLang() {
   if (modalAddBtn) modalAddBtn.innerText = t.add;
 
   const navItems = document.querySelectorAll(".bottom .nav-item");
-
   if (navItems[0]) setNavText(navItems[0], t.home);
   if (navItems[1]) setNavText(navItems[1], t.cart);
-  if (navItems[2]) setNavText(navItems[2], t.setting);
+  if (navItems[2]) setNavText(navItems[2], t.tracking);
   if (navItems[3]) setNavText(navItems[3], t.account);
 }
 
 function setNavText(navItem, label) {
-  let labelNode = navItem.querySelector(".nav-label");
+  navItem.childNodes.forEach((node) => {
+    if (node.nodeType === Node.TEXT_NODE) node.remove();
+  });
 
+  let labelNode = navItem.querySelector(".nav-label");
   if (!labelNode) {
     labelNode = document.createElement("span");
     labelNode.className = "nav-label";
@@ -82,3 +77,4 @@ function setNavText(navItem, label) {
 }
 
 document.addEventListener("DOMContentLoaded", applyLang);
+

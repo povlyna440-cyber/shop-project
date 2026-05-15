@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>តាមដានអីវ៉ាន់</title>
+  <style>
+    .header{
+  position:relative;
+  padding:18px;
+  text-align:center;
+  color:#fff7d6;
+  background:linear-gradient(135deg,#08070b,#2a210f,#d4af37);
+  font-weight:900;
+}
+
+.back-btn{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+  width:38px;
+  height:38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  text-decoration:none;
+  font-size:20px;
+  font-weight:bold;
+  color:#fff;
+  background:rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.18);
+  backdrop-filter:blur(6px);
+  transition:0.2s;
+}
+
+.back-btn:hover{
+  background:rgba(255,255,255,0.22);
+  transform:translateY(-50%) scale(1.06);
+}
+    *{box-sizing:border-box;font-family:Arial,sans-serif}
+    body{margin:0;background:#fffdf7;color:#15110a}
+    .header{padding:18px;text-align:center;color:#fff7d6;background:linear-gradient(135deg,#08070b,#2a210f,#d4af37);font-weight:900}
+    .box{margin:24px 16px;padding:18px;border:1px solid #eadfbd;border-radius:14px;background:#fff}
+    input{width:100%;height:44px;padding:0 12px;border:1px solid #eadfbd;border-radius:10px}
+    button{width:100%;height:44px;margin-top:12px;border:0;border-radius:10px;background:linear-gradient(135deg,#f7d774,#d4af37);font-weight:900}
+    .order{margin-top:14px;padding:14px;border:1px solid #eadfbd;border-radius:12px;background:#fffaf0}
+    .item{margin-top:8px;color:#5d4a13;font-size:14px}
+    .muted{color:#7b8794}
+    .total{margin-top:10px;font-weight:900;color:#d99a24}
+  </style>
+</head>
+<body>
+  <div class="header">
+  <a href="index.html" class="back-btn">←</a>
+  តាមដានអីវ៉ាន់
+</div>
+
+  <div class="box">
+    <input id="phone" inputmode="tel" placeholder="បញ្ចូលលេខទូរស័ព្ទដែលបាន order">
+    <button type="button" onclick="trackOrder()">តាមដាន</button>
+    <div id="result"></div>
+  </div>
+
+<script>
+function money(value){
+  return Number(value || 0).toFixed(2);
+}
+
+function productName(item){
+  return item.name_kh || item.name_en || item.name || "No name";
+}
+
+async function trackOrder(){
+  const phone = document.getElementById("phone").value.trim();
+  const result = document.getElementById("result");
+
+  if(!phone){
+    result.innerHTML = `<p class="muted">សូមបញ្ចូលលេខទូរស័ព្ទ</p>`;
+    return;
+  }
+
+  result.innerHTML = `<p class="muted">កំពុងស្វែងរក...</p>`;
+
+  try{
+    const res = await fetch("/api/orders?phone=" + encodeURIComponent(phone));
+    const orders = await res.json();
+
+    if(!res.ok) throw new Error(orders.error || "Failed");
+
+    if(!orders.length){
+      result.innerHTML = `<p class="muted">រកមិនឃើញប្រវត្តិ order សម្រាប់លេខនេះ</p>`;
+      return;
+    }
+
+result.innerHTML = orders.map((order) => {
+const items = (order.cart || []).map((item) => {
+  const qty = Number(item.qty || item.quantity || 1);
+  const price = Number(item.price || 0);
+  const deliveryFee =
+    item.deliveryType === "free"
+      ? 0
+      : Number(item.deliveryFee || item.delivery || item.shippingFee || 0);
+
+  const productTotal = price * qty;
+  const itemTotal = productTotal + deliveryFee;
+
+  return `
+  <div class="item">• ${productName(item)} x ${qty} - $${money(productTotal)}</div>
+  <div class="item muted">ដឹកជញ្ជូន: $${money(deliveryFee)}</div>
+  <div class="item">សរុបរង: $${money(itemTotal)}</div>
+  `;
+}).join("");
+
+
+    const date = order.createdAt ? new Date(order.createdAt).toLocaleString() : "-";
+
+  const orderTotal = (order.cart || []).reduce((sum, item) => {
+    const qty = Number(item.qty || item.quantity || 1);
+    const price = Number(item.price || 0);
+    const deliveryFee =
+      item.deliveryType === "free"
+        ? 0
+        : Number(item.deliveryFee || item.delivery || item.shippingFee || 0);
+
+    return sum + (price * qty) + deliveryFee;
+  }, 0);
+
+
+  return `
+    <div class="order">
+
+          <div><strong>Order ID:</strong> ${order._id}</div>
+          <div class="muted">${date}</div>
+          ${items}
+          <div class="total">Total: $${money(order.total || orderTotal)}</div>
+        </div>
+      `;
+    }).join("");
+  }catch(err){
+    result.innerHTML = `<p class="muted">មានបញ្ហា សូមព្យាយាមម្ដងទៀត</p>`;
+  }
+}
+</script>
+</body>
+</html>
