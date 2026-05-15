@@ -28,6 +28,9 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(express.static(path.join(__dirname, "public")));
+app.get("/tracking.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "tracking.html"));
+});
 
 // ===== MONGODB =====
 mongoose
@@ -131,7 +134,7 @@ function productPayload(body, images) {
 }
 
 // ===== CREATE PRODUCT =====
-app.post("/api/products", productUpload.array("images", 5), async (req, res) => {
+app.post("/api/products", productUpload.array("images", 10), async (req, res) => {
   try {
     if (!req.body.name) {
       return res.status(400).json({ error: "Product name is required" });
@@ -156,7 +159,7 @@ app.post("/api/products", productUpload.array("images", 5), async (req, res) => 
 });
 
 // ===== UPDATE PRODUCT =====
-app.put("/api/products/:id", productUpload.array("images", 5), async (req, res) => {
+app.put("/api/products/:id", productUpload.array("images", 10), async (req, res) => {
   try {
     const oldProduct = await Product.findById(req.params.id);
 
@@ -242,15 +245,25 @@ app.post("/api/order", upload.single("slip"), async (req, res) => {
         });
       }
     }
+   const total = cart.reduce((sum, p) => {
+  const qty = Number(p.qty || p.quantity || 1);
+  const price = Number(p.price || 0);
+  const deliveryFee =
+    p.deliveryType === "free"
+      ? 0
+      : Number(p.deliveryFee || p.delivery || p.shippingFee || 0);
 
-    const order = await Order.create({
-      name: req.body.name,
-      phone: req.body.phone,
-      address: req.body.address,
-      cart,
-      slip: req.file ? "/uploads/" + req.file.filename : ""
-    });
+  return sum + (price * qty) + deliveryFee;
+}, 0);
 
+const order = await Order.create({
+  name: req.body.name,
+  phone: req.body.phone,
+  address: req.body.address || req.body.location || "",
+  cart,
+  total,
+  slip: req.file ? "/uploads/" + req.file.filename : ""
+});
     const TOKEN = process.env.TG_TOKEN;
     const CHAT_ID = process.env.TG_CHAT_ID;
 
@@ -346,7 +359,61 @@ if (location) {
     res.status(500).json({ error: err.response?.data?.description || err.message || "Order failed" });
   }
 });
+// ===== TRACK ORDER BY PHONE =====
+app.get("/api/orders", async (req, res) => {
+  try {
+    const phone = String(req.query.phone || "").trim();
 
+    if (!phone) {
+      return res.status(400).json({ error: "Phone is required" });
+    }
+
+    const normalizedPhone = phone.replace(/\D/g, "");
+
+    const orders = await Order.find({
+      phone: {
+        $regex: normalizedPhone,
+        $options: "i"
+      }
+    }).sort({ createdAt: -1 });
+
+    res.json(orders);
+  } catch (err) {
+    console.log("Track Order Error:", err.message);
+    res.status(500).json({ error: "Get orders failed" });
+  }
+});
+// ===== ADMIN ORDER HISTORY =====
+app.get("/api/admin/orders", async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err) {
+    console.log("Admin Orders Error:", err.message);
+    res.status(500).json({ error: "Get orders failed" });
+  }
+});
+// ===== DELETE ONE ORDER =====
+app.delete("/api/admin/orders/:id", async (req, res) => {
+  try {
+    await Order.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    console.log("Delete Order Error:", err.message);
+    res.status(500).json({ error: "Delete order failed" });
+  }
+});
+
+// ===== DELETE ALL ORDERS =====
+app.delete("/api/admin/orders", async (req, res) => {
+  try {
+    await Order.deleteMany({});
+    res.json({ success: true });
+  } catch (err) {
+    console.log("Delete All Orders Error:", err.message);
+    res.status(500).json({ error: "Delete all orders failed" });
+  }
+});
 
 // ===== ADMIN STATIC =====
 app.use("/admin", express.static(path.join(__dirname, "admin")));
