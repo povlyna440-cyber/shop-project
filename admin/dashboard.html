@@ -377,6 +377,115 @@ input:focus,select:focus,textarea:focus{
   .stats{grid-template-columns:1fr}
   .products{grid-template-columns:1fr}
 }
+.field-hint {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.preview {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.option-preview-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fff;
+}
+
+.option-preview-card img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border: 0;
+  border-radius: 0;
+}
+
+.option-preview-card span {
+  display: block;
+  padding: 5px;
+  color: var(--text);
+  background: #f8fafc;
+  font-size: 11px;
+  font-weight: 800;
+}
+.order-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  padding:24px;
+  background:rgba(15,23,42,.45);
+}
+.order-panel{
+  max-width:900px;
+  max-height:90vh;
+  overflow:auto;
+  margin:0 auto;
+  padding:18px;
+  border-radius:14px;
+  background:#fff;
+}
+.order-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:14px;
+}
+.order-head button{
+  width:38px;
+  height:38px;
+  margin:0;
+  border:0;
+  border-radius:50%;
+  color:#fff;
+  background:var(--danger);
+  font-size:24px;
+}
+.order-card{
+  padding:14px;
+  margin-bottom:12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fffdf7;
+}
+.order-item{
+  margin-top:6px;
+  color:#475569;
+}
+.order-total{
+  margin-top:10px;
+  color:#d99a24;
+  font-weight:900;
+}
+.order-tools{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+}
+.order-clear-all,
+.order-clear-one{
+  border:0;
+  border-radius:10px;
+  color:#fff;
+  background:var(--danger);
+  font-weight:900;
+}
+.order-clear-all{
+  min-height:38px;
+  padding:0 14px;
+}
+.order-clear-one{
+  margin-top:10px;
+  min-height:34px;
+  padding:0 12px;
+}
+
 </style>
 </head>
 
@@ -391,9 +500,10 @@ input:focus,select:focus,textarea:focus{
       </div>
     </div>
     <div class="top-actions">
-      <button class="link-btn" type="button" onclick="location.href='index.html'">View Shop</button>
-      <button class="link-btn" type="button" onclick="loadProducts()">Reload</button>
-    </div>
+  <button class="link-btn" type="button" onclick="location.href='index.html'">View Shop</button>
+  <button class="link-btn" type="button" onclick="openOrderHistory()">Order History</button>
+  <button class="link-btn" type="button" onclick="loadProducts()">Reload</button>
+</div>
   </div>
 
   <div class="layout">
@@ -476,7 +586,7 @@ input:focus,select:focus,textarea:focus{
 </div>
 
       <div class="field">
-        <label for="colors">Colors Available</label>
+        <label for="colors">Color Options (same order as images)</label>
         <input id="colors" placeholder="ខ្មៅ, ស, Pink, Blue">
       </div>
 
@@ -495,13 +605,13 @@ input:focus,select:focus,textarea:focus{
         Pre-order product
       </label>
 
-      <div class="field">
-        <label for="images">Images</label>
-        <input id="images" type="file" accept="image/*" multiple>
-        <div id="preview" class="preview"></div>
-      </div>
-
-      <div class="form-actions">
+     <div class="field">
+  <label for="images">Option Images (Image 1 = Color 1)</label>
+  <input id="images" type="file" accept="image/*" multiple>
+  <small class="field-hint">Example: Color 1 uses image 1, Color 2 uses image 2, Color 3 uses image 3.</small>
+  <div id="preview" class="preview"></div>
+</div>
+            <div class="form-actions">
         <button id="saveBtn" class="primary-btn" type="button" onclick="saveProduct()">Save</button>
         <button class="ghost-btn" type="button" onclick="clearForm()">Clear</button>
       </div>
@@ -544,6 +654,22 @@ input:focus,select:focus,textarea:focus{
 
       <section id="products" class="products"></section>
     </main>
+  </div>
+</div>
+<div id="orderHistoryModal" class="order-modal">
+  <div class="order-panel">
+   <div class="order-head">
+  <h2>ប្រវត្តិភ្ញៀវ Order</h2>
+  <button type="button" onclick="closeOrderHistory()">×</button>
+</div>
+
+<div class="order-tools">
+  <strong>Order History</strong>
+  <button class="order-clear-all" type="button" onclick="clearAllOrders()">Clear All</button>
+</div>
+
+<div id="adminOrdersList"></div>
+
   </div>
 </div>
 
@@ -663,23 +789,38 @@ function fillForm(product){
 
 }
 
-el("images").addEventListener("change", () => {
+function renderOptionPreview() {
   const files = [...el("images").files];
+  const colors = parseList(el("colors").value);
   const preview = el("preview");
   preview.innerHTML = "";
 
-  if(!files.length){
+  if (!files.length) {
     preview.style.display = "none";
     return;
   }
 
   preview.style.display = "grid";
-  files.slice(0,4).forEach(file => {
+
+  files.slice(0, 10).forEach((file, index) => {
+    const card = document.createElement("div");
+    card.className = "option-preview-card";
+
     const img = document.createElement("img");
     img.src = URL.createObjectURL(file);
-    preview.appendChild(img);
+
+    const label = document.createElement("span");
+    label.textContent = colors[index] || `Option ${index + 1}`;
+
+    card.appendChild(img);
+    card.appendChild(label);
+    preview.appendChild(card);
   });
-});
+}
+
+el("images").addEventListener("change", renderOptionPreview);
+el("colors").addEventListener("input", renderOptionPreview);
+
 
 async function saveProduct(){
   const name = el("name").value.trim() || el("name_en").value.trim() || el("name_kh").value.trim();
@@ -724,13 +865,16 @@ async function saveProduct(){
     const method = editingId ? "PUT" : "POST";
     const res = await fetch(url, {method, body:form});
 
-    if(!res.ok) throw new Error("Save failed");
+    if (!res.ok) {
+  const data = await res.json().catch(() => ({}));
+  throw new Error(data.message || data.error || "Save failed");
+}
 
     alert(editingId ? "Updated" : "Saved");
     clearForm();
     await loadProducts();
   }catch(err){
-    alert("Save failed");
+    alert(err.message || "Save failed");
   }finally{
     saveBtn.disabled = false;
     saveBtn.innerText = editingId ? "Update" : "Save";
@@ -835,7 +979,7 @@ function renderProducts(){
             <p>Pre-order<br><strong>${product.isPreOrder === false ? "No" : "Yes"}</strong></p>
           </div>
           <div class="chips">
-            ${colors.map(color => `<span class="chip">${escapeText(color)}</span>`).join("")}
+            ${colors.map((color, index) => `<span class="chip">${index + 1}. ${escapeText(color)}</span>`).join("")}
             ${options.map(option => `<span class="chip">${escapeText(option)}</span>`).join("")}
             ${!colors.length && !options.length ? `<span class="chip">No color/option</span>` : ""}
           </div>
@@ -864,6 +1008,111 @@ async function deleteProduct(id){
     await loadProducts();
   }catch(err){
     alert("Delete failed");
+  }
+}
+function adminMoney(value){
+  return Number(value || 0).toFixed(2);
+}
+
+function adminProductName(item){
+  return item.name_kh || item.name_en || item.name || "Product";
+}
+
+async function openOrderHistory(){
+  el("orderHistoryModal").style.display = "block";
+  await loadAdminOrders();
+}
+
+function closeOrderHistory(){
+  el("orderHistoryModal").style.display = "none";
+}
+
+async function loadAdminOrders(){
+  const box = el("adminOrdersList");
+  box.innerHTML = "Loading...";
+
+  try{
+    const res = await fetch("/api/admin/orders");
+    const orders = await res.json();
+
+    if(!orders.length){
+      box.innerHTML = "No orders yet";
+      return;
+    }
+
+    box.innerHTML = orders.map((order) => {
+      const items = (order.cart || []).map((item) => {
+        const qty = Number(item.qty || item.quantity || 1);
+        const price = Number(item.price || 0);
+        const deliveryFee = item.deliveryType === "free"
+          ? 0
+          : Number(item.deliveryFee || item.delivery || item.shippingFee || 0);
+
+        return `
+          <div class="order-item">
+            • ${adminProductName(item)} x ${qty} - $${adminMoney(price * qty)}
+            | Delivery: ${deliveryFee > 0 ? "$" + adminMoney(deliveryFee) : "Free"}
+          </div>
+        `;
+      }).join("");
+
+      const total = (order.cart || []).reduce((sum, item) => {
+        const qty = Number(item.qty || item.quantity || 1);
+        const price = Number(item.price || 0);
+        const deliveryFee = item.deliveryType === "free"
+          ? 0
+          : Number(item.deliveryFee || item.delivery || item.shippingFee || 0);
+
+        return sum + (price * qty) + deliveryFee;
+      }, 0);
+
+      const date = order.createdAt ? new Date(order.createdAt).toLocaleString() : "-";
+
+    return `
+  <div class="order-card">
+    <strong>Order ID:</strong> ${order._id}<br>
+    <strong>Name:</strong> ${order.name || "-"}<br>
+    <strong>Phone:</strong> ${order.phone || "-"}<br>
+    <strong>Date:</strong> ${date}
+    ${items}
+    <div class="order-total">Total: $${adminMoney(order.total || total)}</div>
+    <button class="order-clear-one" type="button" onclick="clearOneOrder('${order._id}')">Clear</button>
+  </div>
+`;
+    }).join("");
+  }catch(err){
+    box.innerHTML = "Cannot load orders";
+  }
+}
+async function clearOneOrder(id){
+  if(!confirm("Clear this order?")) return;
+
+  try{
+    const res = await fetch("/api/admin/orders/" + id, {
+      method: "DELETE"
+    });
+
+    if(!res.ok) throw new Error("Clear failed");
+
+    await loadAdminOrders();
+  }catch(err){
+    alert("Clear failed");
+  }
+}
+
+async function clearAllOrders(){
+  if(!confirm("Clear all order history?")) return;
+
+  try{
+    const res = await fetch("/api/admin/orders", {
+      method: "DELETE"
+    });
+
+    if(!res.ok) throw new Error("Clear all failed");
+
+    await loadAdminOrders();
+  }catch(err){
+    alert("Clear all failed");
   }
 }
 
