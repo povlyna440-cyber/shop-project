@@ -331,7 +331,7 @@ function getTrackingSteps(status){
   `;
 }
 
-async function trackOrder(){
+async function trackOrder(showLoading = true){
 
   const phone = document.getElementById("phone").value.trim();
   const result = document.getElementById("result");
@@ -341,9 +341,12 @@ async function trackOrder(){
       `<p class="muted">សូមបញ្ចូលលេខទូរស័ព្ទ</p>`;
     return;
   }
+ if(showLoading){
 
   result.innerHTML =
     `<p class="muted">កំពុងស្វែងរក...</p>`;
+
+}
 
   try{
 
@@ -551,13 +554,17 @@ function statusClass(status){
 setInterval(() => {
 
   const phone =
-    document.getElementById("phone").value.trim();
+    document.getElementById("phone")
+    .value
+    .trim();
 
-  if(phone){
-    trackOrder();
+  if(phone.length >= 9){
+
+    trackOrder(false);
+
   }
 
-}, 5000);
+}, 10000);
 
 </script>
 
