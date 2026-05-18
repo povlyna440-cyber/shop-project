@@ -562,47 +562,83 @@ function goCheckout(){
 }
 
 function contactSeller(){
-  const freshCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  const freshCart =
+    JSON.parse(localStorage.getItem("cart")) || [];
 
   if(freshCart.length === 0){
+
     alert(t().emptyAlert);
+
     return;
   }
 
-  let msg = "Order:\n\n";
+  let msg = `🛒 NEW ORDER\n\n`;
 
-freshCart.forEach((p,i)=>{
-  const price = Number(p.price || 0);
-  const qty = getQty(p);
-  const delivery = getDeliveryFee(p);
-  const subtotal = price * qty;
-  const itemTotal = subtotal + delivery;
-  const img = imageUrl(p.cartImage || p.selectedImage || p.images?.[0]);
-  const name = getName(p);
-  const option = getOption(p);
-  const note = p.note || "";
+  freshCart.forEach((p,i)=>{
 
+    const price =
+      Number(p.price || 0);
 
-    msg += `${i + 1}. ${getName(p)}\n`;
-    msg += `Qty: ${qty}\n`;
-    if(option) msg += `Option: ${option}\n`;
-    if(note) msg += `Note: ${note}\n`;
-    msg += `Price: $${money(price)} x ${qty}\n`;
-    msg += `Delivery: $${money(delivery)}\n`;
-    msg += `Item Total: $${money(itemTotal)}\n\n`;
+    const qty =
+      getQty(p);
+
+    const delivery =
+      getDeliveryFee(p);
+
+    const itemTotal =
+      (price * qty) + delivery;
+
+    const option =
+      getOption(p);
+
+    const note =
+      p.note || "";
+
+    msg += `━━━━━━━━━━━━━━\n`;
+
+    msg += `📦 Item ${i + 1}\n`;
+
+    msg += `🛍 Product: ${getName(p)}\n`;
+
+    msg += `🔢 Qty: ${qty}\n`;
+
+    if(option){
+
+      msg += `🎨 Option: ${option}\n`;
+
+    }
+
+    if(note){
+
+      msg += `📝 Note: ${note}\n`;
+
+    }
+
+    msg += `💵 Price: $${money(price)} × ${qty}\n`;
+
+    msg += `🚚 Delivery: $${money(delivery)}\n`;
+
+    msg += `📌 Item Total: $${money(itemTotal)}\n\n`;
 
   });
 
   const total = freshCart.reduce((sum,p)=>{
+
     return sum + getItemTotal(p);
+
   },0);
 
-  msg += `Total: $${money(total)}`;
+  msg += `━━━━━━━━━━━━━━\n`;
+
+  msg += `💰 Total: $${money(total)}`;
 
   const username = "N21twentyone";
-  const url = `https://t.me/share/url?url=https://t.me/${username}&text=${encodeURIComponent(msg)}`;
 
-  window.open(url, "_blank");
+  const url =
+    `https://t.me/${username}?text=${encodeURIComponent(msg)}`;
+
+  window.open(url,"_blank");
 }
 
 function applyLang(){
