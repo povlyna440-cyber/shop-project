@@ -485,7 +485,57 @@ input:focus,select:focus,textarea:focus{
   min-height:34px;
   padding:0 12px;
 }
+.confirm-btn{
+  margin-top:10px;
+  margin-right:8px;
+  min-height:34px;
+  padding:0 12px;
+  border:0;
+  border-radius:10px;
+  color:#fff;
+  background:#10b981;
+  font-weight:900;
+}
+.admin-actions{
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+}
 
+.confirm-btn.processing{
+  background:#f59e0b;
+}
+
+.confirm-btn.shipping{
+  background:#3b82f6;
+}
+
+.confirm-btn.delivered{
+  background:#10b981;
+}
+.admin-status{
+  padding:5px 10px;
+  border-radius:20px;
+  color:#fff;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.admin-status.pending{
+  background:#d4af37;
+}
+
+.admin-status.processing{
+  background:#ff9800;
+}
+
+.admin-status.shipping{
+  background:#2196f3;
+}
+
+.admin-status.delivered{
+  background:#10b981;
+}
 </style>
 </head>
 
@@ -1074,11 +1124,62 @@ async function loadAdminOrders(){
     <strong>Name:</strong> ${order.name || "-"}<br>
     <strong>Phone:</strong> ${order.phone || "-"}<br>
     <strong>Date:</strong> ${date}
+    <br>
+<strong>Status:</strong>
+<span class="admin-status ${order.status || "pending"}">
+  ${order.status || "pending"}
+</span>
     ${items}
     <div class="order-total">Total: $${adminMoney(order.total || total)}</div>
     <button class="order-clear-one" type="button" onclick="clearOneOrder('${order._id}')">Clear</button>
   </div>
+<div class="admin-actions">
+
+  ${
+    order.status === "pending"
+    ? `
+      <button
+        class="confirm-btn processing"
+        type="button"
+        onclick="updateOrderStatus('${order._id}','processing')"
+      >
+        📦 Processing
+      </button>
+    `
+    : ""
+  }
+
+  ${
+    order.status === "processing"
+    ? `
+      <button
+        class="confirm-btn shipping"
+        type="button"
+        onclick="updateOrderStatus('${order._id}','shipping')"
+      >
+        🚚 Shipping
+      </button>
+    `
+    : ""
+  }
+
+  ${
+    order.status === "shipping"
+    ? `
+      <button
+        class="confirm-btn delivered"
+        type="button"
+        onclick="updateOrderStatus('${order._id}','delivered')"
+      >
+        ✅ Delivered
+      </button>
+    `
+    : ""
+  }
+
+</div>
 `;
+
     }).join("");
   }catch(err){
     box.innerHTML = "Cannot load orders";
@@ -1099,7 +1200,40 @@ async function clearOneOrder(id){
     alert("Clear failed");
   }
 }
+async function updateOrderStatus(id,status){
 
+  try{
+
+    const res = await fetch(
+      "/api/admin/orders/" + id,
+      {
+        method:"PUT",
+
+        headers:{
+          "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+          status
+        })
+      }
+    );
+
+    if(!res.ok){
+
+      throw new Error("Update failed");
+
+    }
+
+    await loadAdminOrders();
+
+  }catch(err){
+
+    alert("Update failed");
+
+  }
+
+}
 async function clearAllOrders(){
   if(!confirm("Clear all order history?")) return;
 
