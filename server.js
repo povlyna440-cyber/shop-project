@@ -184,7 +184,31 @@ app.put("/api/products/:id", productUpload.array("images", 10), async (req, res)
     res.status(500).json({ error: "Update product failed" });
   }
 });
+app.put("/api/admin/orders/:id", async(req,res)=>{
 
+  try{
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        status:req.body.status
+      },
+      {
+        new:true
+      }
+    );
+
+    res.json(order);
+
+  }catch(err){
+
+    res.status(500).json({
+      error:"Update failed"
+    });
+
+  }
+
+});
 // ===== GET PRODUCTS =====
 app.get("/api/products", async (req, res) => {
   try {
@@ -258,7 +282,8 @@ app.post("/api/order", upload.single("slip"), async (req, res) => {
 
 const order = await Order.create({
   name: req.body.name,
-  phone: req.body.phone,
+  phone: String(req.body.phone || "")
+  .replace(/\D/g,""),
   address: req.body.address || req.body.location || "",
   cart,
   total,
@@ -324,7 +349,40 @@ if (location) {
     chat_id: CHAT_ID,
     text
   });
+  for (const [i,p] of cart.entries()) {
 
+const productImage =
+  p.cartImage?.startsWith("http")
+    ? p.cartImage
+    : p.selectedImage?.startsWith("http")
+    ? p.selectedImage
+    : p.images?.[0]?.startsWith("http")
+    ? p.images[0]
+    : "";
+  if(productImage){
+
+    try{
+
+      await axios.post(
+        `https://api.telegram.org/bot${TOKEN}/sendPhoto`,
+        {
+          chat_id: CHAT_ID,
+          photo: productImage,
+        }
+      );
+
+    }catch(err){
+
+      console.log(
+        "Send product image failed",
+        err.message
+      );
+
+    }
+
+  }
+
+}
   if (req.file) {
     const slipForm = new FormData();
 
@@ -371,11 +429,9 @@ app.get("/api/orders", async (req, res) => {
     const normalizedPhone = phone.replace(/\D/g, "");
 
     const orders = await Order.find({
-      phone: {
-        $regex: normalizedPhone,
-        $options: "i"
-      }
-    }).sort({ createdAt: -1 });
+  phone: normalizedPhone
+})
+.sort({ createdAt: -1 });
 
     res.json(orders);
   } catch (err) {
