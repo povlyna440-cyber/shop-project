@@ -361,6 +361,15 @@ body {
   <div class="total-wrap">
     <div class="total-label" id="totalText">Total</div>
     <div class="total">$<span id="total">0.00</span></div>
+
+<div id="deliveryText"
+style="
+  font-size:12px;
+  color:#64748b;
+  margin-top:2px;
+">
+  Delivery: $0.00
+</div>
   </div>
 
   <div class="footer-actions">
@@ -477,7 +486,7 @@ function render(){
     const qty = getQty(p);
     const delivery = getDeliveryFee(p);
     const subtotal = price * qty;
-    const itemTotal = subtotal + delivery;
+    const itemTotal = subtotal;
     const img = imageUrl(p.cartImage || p.selectedImage || p.images?.[0]);
     const name = getName(p);
     const option = getOption(p);
@@ -508,14 +517,25 @@ function render(){
             ${note ? `<div>${text.note}: <strong style="color:#0f172a">${escapeText(note)}</strong></div>` : ""}
           </div>
 
-          <div class="price">$${money(price)} × ${qty} + $${money(delivery)} = $${money(itemTotal)}</div>
+          <div class="price">$${money(price)} × ${qty} = $${money(itemTotal)}</div>
         </div>
       </div>
     `;
   });
 
-  document.getElementById("list").innerHTML = html;
-  document.getElementById("total").innerText = money(total);
+ // delivery គិតតែ 1 ដង
+let deliveryFee = 0;
+
+if(cart.length > 0){
+  deliveryFee = getDeliveryFee(cart[0]);
+}
+
+total += deliveryFee;
+
+document.getElementById("list").innerHTML = html;
+document.getElementById("total").innerText = money(total);
+document.getElementById("deliveryText").innerText =
+  `Delivery: $${money(deliveryFee)}`;
 }
 
 function removeItem(i){
@@ -587,7 +607,7 @@ function contactSeller(){
       getDeliveryFee(p);
 
     const itemTotal =
-      (price * qty) + delivery;
+  (price * qty);
 
     const option =
       getOption(p);
@@ -623,11 +643,18 @@ function contactSeller(){
 
   });
 
-  const total = freshCart.reduce((sum,p)=>{
+ const subtotal = freshCart.reduce((sum,p)=>{
 
-    return sum + getItemTotal(p);
+  return sum + (Number(p.price || 0) * getQty(p));
 
-  },0);
+},0);
+
+const deliveryFee =
+  freshCart.length > 0
+    ? getDeliveryFee(freshCart[0])
+    : 0;
+
+const total = subtotal + deliveryFee;
 
   msg += `━━━━━━━━━━━━━━\n`;
 
